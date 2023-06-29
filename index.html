@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, height=640">
+<html>
+
+<head>
+    <title>Canvas</title>
+    <style>
+        html,
+        body {
+            touch-action: none;
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: black;
+        }
+
+        #myCanvas {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            z-index: 13;
+            border: 1px solid red;
+
+        }
+
+        #canvases {
+            width: 3200px;
+            height: 3200px;
+        }
+
+        #controlcanvas {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            border: 1px solid black;
+            border-radius: 25%;
+            background-color: rgba(128, 128, 128, 0.5);
+            z-index: 15;
+        }
+    </style>
+</head>
+<script src="index.js" type="module"></script>
+
+<body>
+    <canvas id="myCanvas"></canvas>
+    <canvas id="controlcanvas"></canvas>
+    <div id="canvases"></div>
+</body>
+
+</html>
