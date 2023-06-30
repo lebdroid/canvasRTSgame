@@ -1,5 +1,7 @@
 // import { CalculateOffset } from './functions.js';
-import { Worldoffset, canvas, ctx, isScrolling, objects } from './shared.js';
+import { aStarAlgorithm } from './Astar.js';
+import { findCellKey } from './functions.js';
+import { Worldoffset, canvas, ctx, grid, isScrolling, objects, reciprocal } from './shared.js';
 
 let startX, startY, width, height; // letiables to store the starting position and size of the selection rectangle
 let isSelecting = false // Flag to indicate whether the user is currently selecting
@@ -142,8 +144,13 @@ function SetDestination(startX, startY) {
         //     return
         // }
         selected.forEach(obj => {
-            obj.target = CalculateOffset({ x: startX, y: startY })
-            obj.needsToMove = true
+            let targetLocation = CalculateOffset({ x: startX, y: startY })
+            let startCellName = findCellKey(obj, reciprocal)
+            let targetCellName = findCellKey(targetLocation, reciprocal)
+            let path = aStarAlgorithm(startCellName, targetCellName)
+            obj.target = targetLocation
+            obj.path = path
+            obj.currentPathIndex =  0
         })
         // clearSelection()
     }, dbInterval)

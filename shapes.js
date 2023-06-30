@@ -17,11 +17,13 @@ export function CreateCircle(x, y, angle, color) {
         color,
         angle,
         target: null,
-        needsToMove: false,
         selected: false,
         lineLength: 30,
         shape: "circle",
-        direction : {x: 0, y: 0}
+        path: [],
+        currentPathIndex: 0,
+        needsToMove: false
+
     }
     objects.push(circle);
     return circle
@@ -97,7 +99,7 @@ export function animateMale(obj, ctx, image) {
         obj.scene = 0;
         // console.log("up")
     }
-    if (obj.needsToMove === false) {
+    if (obj.path.length === 0) {
         obj.frame = 8
     }
     // ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, destinationX, destinationY, destinationWidth, destinationHeight);
@@ -123,10 +125,11 @@ export function CreateRectangle(x, y, width, height, angle, color) {
         color,
         angle,
         target: null,
-        needsToMove: false,
         lineLength: 40,
         selected: false,
-        shape: "rectangle"
+        shape: "rectangle",
+        path: [],
+        currentPathIndex: 0,
     };
     objects.push(rectangle);
     return rectangle

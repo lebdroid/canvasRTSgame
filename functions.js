@@ -1,4 +1,4 @@
-import { Worldoffset } from "./shared.js";
+import { Worldoffset, grid } from "./shared.js";
 
 // Calculate the length of a vector
 export function GetLength(obj) {
@@ -89,7 +89,21 @@ export function CheckCollisionRectangles(rectangleA, rectangleB) {
     return true;
 }
 
-
+export function paintGridOnCanvas(graph, context) {
+    const cellSize = 32;
+    // Clear the canvas
+    // Loop through the grid and paint each cell
+    for (let cellName in graph) {
+        const cell = graph[cellName];
+        const x = (cell.x + Worldoffset.offsetX) * cellSize
+        const y = (cell.y + Worldoffset.offsetY) * cellSize
+        // Draw cell borders
+        context.beginPath()
+        context.strokeStyle = 'black';
+        context.lineWidth = 1;
+        context.strokeRect(x, y, cellSize, cellSize);
+    }
+}
 
 // Get a random number within a range
 export function GetRandomNumber(min, max) {
@@ -121,5 +135,69 @@ export function findCellKey(obj, reciprocal) {
     const cellCol = Math.floor(y * reciprocal);
     const cellId = `${cellRow},${cellCol}`;
     return cellId;
+}
+
+
+
+
+
+
+export function updateCharacterPosition(character, cellWidth, cellHeight) {
+    if (character.path.length === 0) {
+        // No path available, stop moving
+        return;
+    }
+
+    let cellName = character.path[character.currentPathIndex];
+    const currentCell = grid[cellName]
+    grid[cellName].blocked = true
+    // if(character.path.length - 1 == character.currentPathIndex){
+    //     grid[character.currentPathIndex - 1].blocked = false
+    // }
+    if (!currentCell) {
+        console.log(character.path)
+        console.log(character.currentPathIndex)
+    }
+    const targetX = (currentCell.x * cellWidth) + (cellWidth / 2) // Adjust based on your grid cell size
+    const targetY = (currentCell.y * cellHeight) + (cellWidth / 2); // Adjust based on your grid cell size
+
+    // Calculate the distance between the character's current position and the target position
+    const dx = (targetX - character.x)
+    const dy = (targetY - character.y)
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    let angle = Math.atan2(dy, dx);
+    // Check if the character has reached the target cell
+    if (distance <= character.speed) {
+        character.x = targetX;
+        character.y = targetY;
+
+        // Move to the next cell in the path
+        character.currentPathIndex++;
+
+        // Check if the character has reached the final target cell
+        if (character.currentPathIndex >= character.path.length) {
+            // Character has reached the destination, clear the path
+            character.path = [];
+            character.currentPathIndex = 0;
+
+            // Stop moving and perform any necessary actions
+            return;
+        }
+    }
+
+    // Move towards the target cell
+    let vx = (dx / distance) * character.speed;
+    let vy = (dy / distance) * character.speed;
+
+    if (!((dx / distance) * character.speed) || !((dy / distance) * character.speed)) {
+        vx = 1
+        vy = 1
+    }
+
+    character.x += vx;
+    character.y += vy;
+    character.angle = angle
+
+
 }
 

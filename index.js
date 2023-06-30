@@ -1,9 +1,8 @@
 
-import { canvas, ctx, objects, Worldoffset } from './shared.js';
+import { canvas, ctx, grid, mapPiXelheight, mapPiXelwidth, objects, reciprocal, tileHeight, tileWidth, Worldoffset } from './shared.js';
 import { animateMale, CreateCircle, CreateRectangle, DrawCircle, DrawRectangle } from './shapes.js';
 import { handleMouseMovement } from './scrolling.js';
-import { MAP } from './map.js';
-import { CheckCollisionRectangleCircle, findCellKey, GetLength, Locate, Subtract } from './functions.js';
+import { CheckCollisionRectangleCircle, findCellKey, GetLength, Locate, paintGridOnCanvas, Subtract, updateCharacterPosition } from './functions.js';
 import { drawSelectionRectangle, isSelecting } from './mouseSelection.js';
 import { aStarAlgorithm } from './Astar.js';
 
@@ -16,11 +15,6 @@ male.src = "./Assets/maleWalk.png"
 let tiles = new Image()
 tiles.src = "./Assets/tiles.png"
 
-let tileWidth = MAP.tilewidth
-let tileHeight = MAP.tileheight
-let mapPiXelwidth = MAP.width * tileWidth
-let mapPiXelheight = MAP.height * tileHeight
-let reciprocal = 1 / tileWidth // using this to replace division with multiplication 
 
 window.onresize = () => {
     canvas.width = window.innerWidth
@@ -36,76 +30,6 @@ let water = { x: 32, y: 64, block: true }
 let dirt = { x: 64, y: 64, block: false }
 
 let tilesInfo = { 22: bush, 41: grass, 1: treehead, 21: treeBase, 23: rock }
-
-
-
-
-let grid = {}
-
-function CreateGrid(map, rows, cols) {
-    let MapLayers = map.layers
-    for (let i = 0; i < MapLayers.length; i++) {
-        let layer = MapLayers[i].data
-        for (let j = 0; j < layer.length; j++) {
-            let x = j % rows
-            let y = Math.floor(j / cols)
-            let cellname = `${x},${y}`
-            if (layer[j] == 0)
-                continue
-            if (grid[cellname]) {
-                grid[cellname].tile.push(layer[j])
-            } else {
-                let cell = {
-                    x,
-                    y,
-                    g: Infinity,
-                    tile: [],
-                    adj: []
-                }
-                // 1, 0  right
-                if (x + 1 >= 0 && x + 1 < rows && y >= 0 && y < cols) {
-                    cell.adj.push(`${x + 1},${y}`);
-                }
-                // -1, 0 left
-                if (x - 1 >= 0 && x - 1 < rows && y >= 0 && y < cols) {
-                    cell.adj.push(`${x - 1},${y}`);
-                }
-                // 0, -1  up
-                if (x >= 0 && x < rows && y - 1 >= 0 && y - 1 < cols) {
-                    cell.adj.push(`${x},${y - 1}`);
-                }
-                // 0, 1 down
-                if (x >= 0 && x < rows && y + 1 >= 0 && y + 1 < cols) {
-                    cell.adj.push(`${x},${y + 1}`);
-                }
-                // 1, -1  top right
-                if (x + 1 >= 0 && x + 1 < rows && y - 1 >= 0 && y - 1 < cols) {
-                    cell.adj.push(`${x + 1},${y - 1}`);
-                }
-                // -1, -1 top left
-                if (x - 1 >= 0 && x - 1 < rows && y - 1 >= 0 && y - 1 < cols) {
-                    cell.adj.push(`${x - 1},${y - 1}`);
-                }
-                // 1, 1 bottom right
-                if (x + 1 >= 0 && x + 1 < rows && y + 1 >= 0 && y + 1 < cols) {
-                    cell.adj.push(`${x + 1},${y + 1}`);
-                }
-                // -1, 1 bottom left
-                if (x - 1 >= 0 && x - 1 < rows && y + 1 >= 0 && y + 1 < cols) {
-                    cell.adj.push(`${x - 1},${y + 1}`);
-                }
-                cell.tile.push(layer[j])
-                grid[cellname] = cell
-            }
-
-        }
-    }
-}
-
-CreateGrid(MAP, MAP.width, MAP.height)
-
-
-grid["0,0"].blocked = true
 
 // work in progress !!
 // function FindPath(grid, obj, cellsize) {
@@ -131,6 +55,12 @@ const topCanvas = document.createElement('canvas');
 const topContext = topCanvas.getContext('2d');
 topCanvas.width = mapPiXelwidth
 topCanvas.height = mapPiXelheight
+
+
+const gridcanvas = document.createElement('canvas');
+const girdcontext = gridcanvas.getContext('2d');
+gridcanvas.width = mapPiXelwidth
+gridcanvas.height = mapPiXelheight
 
 
 function DrawObservableWorld(startX, startY, endX, endY) {
@@ -225,21 +155,19 @@ function animationLoop() {
     //copying map from secondarycanvas to maincanvas so it would be visible
     ctx.drawImage(secondaryCanvas, Worldoffset.offsetX, Worldoffset.offsetY,);
 
+    ctx.drawImage(gridcanvas, Worldoffset.offsetX, Worldoffset.offsetY,);
 
+
+
+    paintGridOnCanvas(grid, girdcontext)
 
     objects.forEach((obj) => {
-        if (obj.needsToMove) {
-            let { direction, angle } = Locate(obj.target.x, obj.target.y, obj.x, obj.y, obj.speed)
-            obj.direction = direction
-            obj.x += direction.x
-            obj.y += direction.y
-            obj.angle = angle
-            let distance = GetLength(Subtract(obj.target, { x: obj.x, y: obj.y }))
 
-            if (distance < 5) {
-                obj.needsToMove = false
-            }
-        }
+
+        updateCharacterPosition(obj, tileWidth, tileHeight)
+
+
+
         if (obj.shape === "circle") {
             let modifiedObject = CalculateOffset(obj)
             animateMale(modifiedObject, ctx, male)
@@ -276,6 +204,7 @@ function animationLoop() {
 
     requestAnimationFrame(animationLoop);
 }
+
 
 animationLoop();
 
