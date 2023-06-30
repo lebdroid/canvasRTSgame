@@ -67,7 +67,7 @@ export function DrawRectangle(rectangle, ctx) {
 
 
 export function animateMale(obj, ctx, image) {
-    var direction = {
+    let direction = {
         x: Math.cos(obj.angle),
         y: Math.sin(obj.angle)
     };
@@ -100,10 +100,11 @@ export function animateMale(obj, ctx, image) {
     if (obj.needsToMove === false) {
         obj.frame = 8
     }
+    // ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, destinationX, destinationY, destinationWidth, destinationHeight);
     obj.frame = (obj.frame + 1) % 9; // Cycle through frames from 0 to 8
-    var sx = obj.frame * 32; // The x coordinate is the frame index times the frame width
-    var sy = obj.scene * 32; // The y coordinate is the scene index times the scene height
-    ctx.drawImage(image, sx, sy, 32, 32, obj.x + obj.offX - 16, obj.y + obj.offY - 16, 32, 32);
+    let sourceX = obj.frame * 32; // The x coordinate is the frame index times the frame width
+    let sourceY = obj.scene * 32; // The y coordinate is the scene index times the scene height
+    ctx.drawImage(image, sourceX, sourceY, 32, 32, obj.x + obj.offX - 16, obj.y + obj.offY - 16, 32, 32);
 }
 
 

@@ -115,11 +115,11 @@ export function Locate(targetX, targetY, rocketX, rocketY, Speed) {
 }
 
 
-export function findCell(obj, cellSize) {
+export function findCellKey(obj, reciprocal) {
     let { x, y } = obj
-    const cellRow = Math.floor(x / cellSize);
-    const cellCol = Math.floor(y / cellSize);
-    const cellId = `cell_${cellRow}_${cellCol}`;
+    const cellRow = Math.floor(x * reciprocal);
+    const cellCol = Math.floor(y * reciprocal);
+    const cellId = `${cellRow},${cellCol}`;
     return cellId;
 }
 
