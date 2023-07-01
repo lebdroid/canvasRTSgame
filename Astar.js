@@ -1,30 +1,5 @@
-
-// function getDistance(nodeA, nodeB) {
-//     const dx = Math.abs(nodeB.x - nodeA.x);
-//     const dy = Math.abs(nodeB.y - nodeA.y);
-
 import { grid } from "./shared.js";
 
-//     const diagonalCost = 1.4;
-//     const straightCost = 1;
-
-//     // check if it's a diagonal move
-//     if (dx !== 0 && dy !== 0) {
-//         // calculate the diagonal distance
-//         const diagonalDistance = Math.min(dx, dy);
-//         const straightDistance = Math.abs(dx - dy);
-
-//         // calculate the total distance with diagonal cost
-//         const totalDistance = (diagonalCost * diagonalDistance) + (straightCost * straightDistance);
-
-//         return totalDistance;
-//     } else {
-//         // calculate the total distance with straight cost
-//         const totalDistance = straightCost * (dx + dy);
-
-//         return totalDistance;
-//     }
-// }
 function getDistance(currentNode, neighbor) {
     const dx = Math.abs(neighbor.x - currentNode.x);
     const dy = Math.abs(neighbor.y - currentNode.y);
@@ -113,7 +88,7 @@ export function aStarAlgorithm(startNodeName, targetCellName) {
 
         if (currentNode === goalNode) {
             // Path found
-            console.log("path found!")
+            // console.log("path found!")
             return constructPath(currentNode);
         }
 
@@ -150,6 +125,6 @@ export function aStarAlgorithm(startNodeName, targetCellName) {
         }
     }
 
-    console.log("no path found, returning closest node")
+    // console.log("no path found, returning closest node")
     return constructPath(closestNode);
 }

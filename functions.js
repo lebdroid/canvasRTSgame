@@ -130,37 +130,37 @@ export function Locate(targetX, targetY, rocketX, rocketY, Speed) {
 
 
 export function findCellKey(obj, reciprocal) {
-    let { x, y } = obj
-    const cellRow = Math.floor(x * reciprocal);
-    const cellCol = Math.floor(y * reciprocal);
-    const cellId = `${cellRow},${cellCol}`;
+    const cellRow = Math.floor(obj.x * reciprocal);
+    const cellCol = Math.floor(obj.y * reciprocal);
+    let { x, y } = RoundUpNegativeValues(cellRow, cellCol)
+    const cellId = `${x},${y}`;
     return cellId;
 }
 
 
 
-
-
-
 export function updateCharacterPosition(character, cellWidth, cellHeight) {
+
     if (character.path.length === 0) {
         // No path available, stop moving
         return;
     }
-
     let cellName = character.path[character.currentPathIndex];
     const currentCell = grid[cellName]
-    grid[cellName].blocked = true
-    // if(character.path.length - 1 == character.currentPathIndex){
-    //     grid[character.currentPathIndex - 1].blocked = false
-    // }
+
+
+    currentCell.blocked = true
+    if (character.currentPathIndex !== 0 && character.currentPathIndex <= character.path.length - 1) {
+        let previousCellName = character.path[character.currentPathIndex - 1];
+        grid[previousCellName].blocked = false
+    }
+
     if (!currentCell) {
         console.log(character.path)
         console.log(character.currentPathIndex)
     }
     const targetX = (currentCell.x * cellWidth) + (cellWidth / 2) // Adjust based on your grid cell size
     const targetY = (currentCell.y * cellHeight) + (cellWidth / 2); // Adjust based on your grid cell size
-
     // Calculate the distance between the character's current position and the target position
     const dx = (targetX - character.x)
     const dy = (targetY - character.y)
@@ -179,20 +179,17 @@ export function updateCharacterPosition(character, cellWidth, cellHeight) {
             // Character has reached the destination, clear the path
             character.path = [];
             character.currentPathIndex = 0;
-
+            character.speed = character.originalSpeed
+            character.running = false
             // Stop moving and perform any necessary actions
             return;
         }
+        return
     }
 
     // Move towards the target cell
     let vx = (dx / distance) * character.speed;
     let vy = (dy / distance) * character.speed;
-
-    if (!((dx / distance) * character.speed) || !((dy / distance) * character.speed)) {
-        vx = 1
-        vy = 1
-    }
 
     character.x += vx;
     character.y += vy;
@@ -201,3 +198,14 @@ export function updateCharacterPosition(character, cellWidth, cellHeight) {
 
 }
 
+
+
+
+
+function RoundUpNegativeValues(x, y) {
+    if (x <= 0) x = 0
+    if (x > 99) x = 99
+    if (y <= 0) y = 0
+    if (y > 99) y = 99
+    return { x, y }
+}

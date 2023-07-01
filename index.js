@@ -31,17 +31,6 @@ let dirt = { x: 64, y: 64, block: false }
 
 let tilesInfo = { 22: bush, 41: grass, 1: treehead, 21: treeBase, 23: rock }
 
-// work in progress !!
-// function FindPath(grid, obj, cellsize) {
-//     let targetCellKey = findCellKey(obj.target, reciprocal)
-//     let StartCellKey = findCellKey(obj, reciprocal)
-//     let path = aStarAlgorithm(grid[StartCellKey], grid[targetCellKey], grid)
-
-//     console.log(path)
-
-// }
-// FindPath(grid, { x: 3 * 32, y: 3 * 32, target: { x: 0, y: 0 } }, tileWidth)
-
 
 // loading map on secondary canvas and then copying it to the maincanvas inorder to optimize
 const secondaryCanvas = document.createElement('canvas');
@@ -62,13 +51,19 @@ const girdcontext = gridcanvas.getContext('2d');
 gridcanvas.width = mapPiXelwidth
 gridcanvas.height = mapPiXelheight
 
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'p') {
+      // Perform your desired actions here
+      console.log(grid["5,5"].blocked);
+    }
+  });
 
-function DrawObservableWorld(startX, startY, endX, endY) {
-    for (let x = startX; x < endX; x++) {
-        for (let y = startY; y < endY; y++) {
-            let key = `${x},${y}`
-            let tile = grid[key]
-            if (!tile) console.log("DrawObservableWorld error tile", key)
+
+tiles.onload = () => {
+    for (const key in grid) {
+        if (Object.hasOwnProperty.call(grid, key)) {
+            const tile = grid[key];
+            if (!tile) console.log("error in the tiles of the universe!!!", key)
             for (let index = 0; index < tile.tile.length; index++) {
                 let info = tilesInfo[tile.tile[index]]
                 if (info) {
@@ -79,14 +74,13 @@ function DrawObservableWorld(startX, startY, endX, endY) {
                         continue
                     }
                     secondaryContext.drawImage(tiles, info.x, info.y, 32, 32, (tile.x * tileWidth), (tile.y * tileHeight), 32, 32)
-
                     // secondaryContext.beginPath();
                     // secondaryContext.font = `${10}px Arial`;
                     // secondaryContext.fillStyle = "red";
                     // secondaryContext.textAlign = "center";
                     // secondaryContext.fillText(key, (tile.x * tileWidth) + 16, (tile.y * tileHeight) + 16);
                 } else {
-                    console.log("error in drawObservableWorld")
+                    console.log("error in the fabric of the universe!!! ")
                     console.log(tile.tile[index])
                     console.log("********************")
                 }
@@ -94,9 +88,8 @@ function DrawObservableWorld(startX, startY, endX, endY) {
             }
         }
     }
-
-
 }
+
 
 let yellow = CreateCircle(500, 100, 0 * Math.PI / 180, "yellow");
 let red = CreateCircle(100, 120, 0, "red");
@@ -131,6 +124,7 @@ function animationLoop() {
 
     handleMouseMovement();
 
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     let margin = 5
@@ -150,23 +144,17 @@ function animationLoop() {
     if (worldEndY <= 0) worldEndY = 0
     if (worldEndY > 100) worldEndY = 100
 
-    DrawObservableWorld(worldStartX, worldStartY, worldEndX, worldEndY)
-
     //copying map from secondarycanvas to maincanvas so it would be visible
-    ctx.drawImage(secondaryCanvas, Worldoffset.offsetX, Worldoffset.offsetY,);
+    ctx.drawImage(secondaryCanvas, Worldoffset.offsetX, Worldoffset.offsetY);
 
-    ctx.drawImage(gridcanvas, Worldoffset.offsetX, Worldoffset.offsetY,);
+    ctx.drawImage(gridcanvas, Worldoffset.offsetX, Worldoffset.offsetY);
 
 
-
-    paintGridOnCanvas(grid, girdcontext)
 
     objects.forEach((obj) => {
 
 
         updateCharacterPosition(obj, tileWidth, tileHeight)
-
-
 
         if (obj.shape === "circle") {
             let modifiedObject = CalculateOffset(obj)
@@ -205,6 +193,7 @@ function animationLoop() {
     requestAnimationFrame(animationLoop);
 }
 
+paintGridOnCanvas(grid, girdcontext)
 
 animationLoop();
 

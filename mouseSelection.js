@@ -57,7 +57,7 @@ function CalculateOffset(obj) {
 function handleStart(event) {
     event.preventDefault();
     if (event.buttons === 1 || event.touches) {
-        // CheckDoubleClicks()
+        CheckDoubleClicks()
 
         // Get the coordinates from the event
         let { x, y } = getCoordinates(event);
@@ -126,24 +126,25 @@ function handleStart(event) {
     }
 }
 
-// function CheckDoubleClicks() {
-//     if (currentTime() - lastTime < dbInterval) {
-//         doubleClicked = true
-//         clearSelection()
-//     }
-//     lastTime = performance.now()
-// }
+function CheckDoubleClicks() {
+    if (currentTime() - lastTime < dbInterval) {
+        doubleClicked = true
+    }
+    lastTime = performance.now()
+}
 
 
 function SetDestination(startX, startY) {
     setTimeout(() => {
+
         if (isSelecting) return
-        // if(doubleClicked){
-        //     doubleClicked = false 
-        //     console.log("doubleClicked")
-        //     return
-        // }
+
+
         selected.forEach(obj => {
+            if(doubleClicked){
+                obj.speed += 3
+                obj.running = true
+            }
             let targetLocation = CalculateOffset({ x: startX, y: startY })
             let startCellName = findCellKey(obj, reciprocal)
             let targetCellName = findCellKey(targetLocation, reciprocal)
@@ -152,6 +153,8 @@ function SetDestination(startX, startY) {
             obj.path = path
             obj.currentPathIndex =  0
         })
+        doubleClicked = false 
+
         // clearSelection()
     }, dbInterval)
 
