@@ -1,3 +1,4 @@
+import { aStarAlgorithm } from "./Astar.js";
 import { Worldoffset, grid } from "./shared.js";
 
 // Calculate the length of a vector
@@ -128,6 +129,14 @@ export function Locate(targetX, targetY, rocketX, rocketY, Speed) {
     return { direction, angle };
 }
 
+function RoundUpNegativeValues(x, y) {
+    if (x <= 0) x = 0
+    if (x > 99) x = 99
+    if (y <= 0) y = 0
+    if (y > 99) y = 99
+    return { x, y }
+}
+
 
 export function findCellKey(obj, reciprocal) {
     const cellRow = Math.floor(obj.x * reciprocal);
@@ -137,28 +146,36 @@ export function findCellKey(obj, reciprocal) {
     return cellId;
 }
 
-
+export function findCellRealXY(cellx, celly, cellsize) {
+    const x = Math.floor(cellx * cellsize) + (cellsize / 2);
+    const y = Math.floor(celly * cellsize) + (cellsize / 2);
+    return { x, y }
+}
 
 export function updateCharacterPosition(character, cellWidth, cellHeight) {
-
-    if (character.path.length === 0) {
-        // No path available, stop moving
-        return;
-    }
     let cellName = character.path[character.currentPathIndex];
-    const currentCell = grid[cellName]
+    let currentCell = grid[cellName]
+
+    if (currentCell.occupied.size > 0) {
+
+        let previous = grid[character.currentGridLocation]
+        let filtered = previous.adj.filter(value => currentCell.adj.includes(value) && grid[value].blocked == false);
+        if(!filtered[0]){
+            character.isMoving = false
+            return
+        }
+        cellName = filtered[0]
+        currentCell = grid[cellName]
+        character.path[character.currentPathIndex] = cellName
+
+        if (!cellName){
+            console.log(character.path.length, character.currentPathIndex)
+            console.log(character.path)
+        }
 
 
-    currentCell.blocked = true
-    if (character.currentPathIndex !== 0 && character.currentPathIndex <= character.path.length - 1) {
-        let previousCellName = character.path[character.currentPathIndex - 1];
-        grid[previousCellName].blocked = false
     }
 
-    if (!currentCell) {
-        console.log(character.path)
-        console.log(character.currentPathIndex)
-    }
     const targetX = (currentCell.x * cellWidth) + (cellWidth / 2) // Adjust based on your grid cell size
     const targetY = (currentCell.y * cellHeight) + (cellWidth / 2); // Adjust based on your grid cell size
     // Calculate the distance between the character's current position and the target position
@@ -170,20 +187,22 @@ export function updateCharacterPosition(character, cellWidth, cellHeight) {
     if (distance <= character.speed) {
         character.x = targetX;
         character.y = targetY;
-
         // Move to the next cell in the path
         character.currentPathIndex++;
-
         // Check if the character has reached the final target cell
-        if (character.currentPathIndex >= character.path.length) {
+        if (character.currentPathIndex == character.path.length) {
             // Character has reached the destination, clear the path
-            character.path = [];
+            character.path.length = 0
             character.currentPathIndex = 0;
             character.speed = character.originalSpeed
             character.running = false
+            character.needsToMove = false
             // Stop moving and perform any necessary actions
+            character.isMoving = false
             return;
         }
+        character.isMoving = false
+        // character.running = false
         return
     }
 
@@ -194,7 +213,7 @@ export function updateCharacterPosition(character, cellWidth, cellHeight) {
     character.x += vx;
     character.y += vy;
     character.angle = angle
-
+    character.isMoving = true
 
 }
 
@@ -202,10 +221,3 @@ export function updateCharacterPosition(character, cellWidth, cellHeight) {
 
 
 
-function RoundUpNegativeValues(x, y) {
-    if (x <= 0) x = 0
-    if (x > 99) x = 99
-    if (y <= 0) y = 0
-    if (y > 99) y = 99
-    return { x, y }
-}

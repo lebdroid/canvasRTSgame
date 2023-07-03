@@ -141,8 +141,9 @@ function SetDestination(startX, startY) {
 
 
         selected.forEach(obj => {
-            if(doubleClicked){
-                obj.speed += 3
+            if (doubleClicked) {
+                if (obj.speed + 2 <= 4)
+                    obj.speed += 2
                 obj.running = true
             }
             let targetLocation = CalculateOffset({ x: startX, y: startY })
@@ -151,11 +152,11 @@ function SetDestination(startX, startY) {
             let path = aStarAlgorithm(startCellName, targetCellName)
             obj.target = targetLocation
             obj.path = path
-            obj.currentPathIndex =  0
-        })
-        doubleClicked = false 
+            obj.currentPathIndex = 0
+            obj.needsToMove = true
 
-        // clearSelection()
+        })
+        doubleClicked = false
     }, dbInterval)
 
     isDragging = false; // Reset the flag when starting a new action
@@ -169,7 +170,6 @@ function handleMove(event) {
     let { x, y } = getCoordinates(event);
     const canvasRect = canvas.getBoundingClientRect();
 
-    // Do something with x and y
     if (isSelecting) {
         width = x - canvasRect.left - startX;
         height = y - canvasRect.top - startY;
@@ -177,8 +177,8 @@ function handleMove(event) {
             updateSelection(objects);
         }
     } else if (isDragging) { // If you are dragging an object
-        const mouseX = x - canvasRect.left;
-        const mouseY = y - canvasRect.top;
+        let mouseX = x - canvasRect.left
+        let mouseY = y - canvasRect.top  
         // Loop through the selected array and update the position of each object based on the mouse movement and the offset
         selected.forEach(obj => {
             obj.x = mouseX - dragOffset[obj.id].x

@@ -45,7 +45,8 @@ function CreateGrid(map, rows, cols) {
                     y,
                     g: Infinity,
                     tile: [],
-                    adj: []
+                    adj: [],
+                    occupied : new Set()
                 }
                 // 1, 0  right
                 if (x + 1 >= 0 && x + 1 < rows && y >= 0 && y < cols) {

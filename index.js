@@ -2,7 +2,7 @@
 import { canvas, ctx, grid, mapPiXelheight, mapPiXelwidth, objects, reciprocal, tileHeight, tileWidth, Worldoffset } from './shared.js';
 import { animateMale, CreateCircle, CreateRectangle, DrawCircle, DrawRectangle } from './shapes.js';
 import { handleMouseMovement } from './scrolling.js';
-import { CheckCollisionRectangleCircle, findCellKey, GetLength, Locate, paintGridOnCanvas, Subtract, updateCharacterPosition } from './functions.js';
+import { CheckCollisionRectangleCircle, findCellKey, findCellRealXY, GetLength, Locate, paintGridOnCanvas, Subtract, updateCharacterPosition } from './functions.js';
 import { drawSelectionRectangle, isSelecting } from './mouseSelection.js';
 import { aStarAlgorithm } from './Astar.js';
 
@@ -10,8 +10,10 @@ let groundImg = new Image()
 groundImg.src = "./Assets/ground.png"
 let bushImg = new Image()
 bushImg.src = "./Assets/bush.png"
-let male = new Image()
-male.src = "./Assets/maleWalk.png"
+let maleWalk = new Image()
+maleWalk.src = "./Assets/maleWalk.png"
+let maleRun = new Image()
+maleRun.src = "./Assets/maleRun.png"
 let tiles = new Image()
 tiles.src = "./Assets/tiles.png"
 
@@ -51,12 +53,37 @@ const girdcontext = gridcanvas.getContext('2d');
 gridcanvas.width = mapPiXelwidth
 gridcanvas.height = mapPiXelheight
 
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function (event) {
     if (event.key === 'p') {
-      // Perform your desired actions here
-      console.log(grid["5,5"].blocked);
+        // Perform your desired actions here
+        console.log(grid["5,5"].blocked);
     }
-  });
+});
+
+
+// maybe for later use!
+
+// let margin = 5
+// let worldStartX = Math.round((Worldoffset.offsetX * reciprocal) + margin) * -1
+// let worldStartY = Math.round((Worldoffset.offsetY * reciprocal) + margin) * -1
+// let worldEndX = Math.round(((Worldoffset.offsetX * -1) + innerWidth) * reciprocal) + margin
+// let worldEndY = Math.round(((Worldoffset.offsetY * -1) + innerHeight) * reciprocal) + margin
+// if (worldStartX <= 0) worldStartX = 0
+// if (worldStartX > 100) worldStartX = 100
+// if (worldStartY <= 0) worldStartY = 0
+// if (worldStartY > 100) worldStartY = 100
+// if (worldEndX <= 0) worldEndX = 0
+// if (worldEndX > 100) worldEndX = 100
+// if (worldEndY <= 0) worldEndY = 0
+// if (worldEndY > 100) worldEndY = 100
+// function DrawObservableWorld(startX, startY, endX, endY) {
+//     for (let x = startX; x < endX; x++) {
+//         for (let y = startY; y < endY; y++) {
+
+//         }
+//     }
+// }
+
 
 
 tiles.onload = () => {
@@ -91,12 +118,17 @@ tiles.onload = () => {
 }
 
 
-let yellow = CreateCircle(500, 100, 0 * Math.PI / 180, "yellow");
-let red = CreateCircle(100, 120, 0, "red");
-let blue = CreateCircle(350, 355, 0, "blue");
-let purple = CreateCircle(400, 430, 0, "purple");
+let yellow = CreateCircle(13, 10, 0 * Math.PI / 180, "yellow");
+let red = CreateCircle(15, 10, 0, "red");
+let blue = CreateCircle(17, 10, 0, "blue");
+let purple = CreateCircle(19, 10, 0, "purple");
 
-let purplerect = CreateRectangle(500, 800, 30, 10, 0, "purple")
+let green = CreateCircle(12, 10, 0 * Math.PI / 180, "green");
+let pink = CreateCircle(11, 10, 0, "pink");
+let brown = CreateCircle(10, 10, 0, "brown");
+let orange = CreateCircle(9, 10, 0, "orange");
+
+let purplerect = CreateRectangle(21, 10, 30, 10, 0, "purple")
 
 
 
@@ -105,7 +137,6 @@ function CalculateOffset(obj) {
     obj.offY = Worldoffset.offsetY
     return obj
 }
-
 
 
 let frameCount = 0;
@@ -127,22 +158,6 @@ function animationLoop() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let margin = 5
-    let worldStartX = Math.round((Worldoffset.offsetX * reciprocal) + margin) * -1
-    let worldStartY = Math.round((Worldoffset.offsetY * reciprocal) + margin) * -1
-
-    let worldEndX = Math.round(((Worldoffset.offsetX * -1) + innerWidth) * reciprocal) + margin
-    let worldEndY = Math.round(((Worldoffset.offsetY * -1) + innerHeight) * reciprocal) + margin
-
-
-    if (worldStartX <= 0) worldStartX = 0
-    if (worldStartX > 100) worldStartX = 100
-    if (worldStartY <= 0) worldStartY = 0
-    if (worldStartY > 100) worldStartY = 100
-    if (worldEndX <= 0) worldEndX = 0
-    if (worldEndX > 100) worldEndX = 100
-    if (worldEndY <= 0) worldEndY = 0
-    if (worldEndY > 100) worldEndY = 100
 
     //copying map from secondarycanvas to maincanvas so it would be visible
     ctx.drawImage(secondaryCanvas, Worldoffset.offsetX, Worldoffset.offsetY);
@@ -153,12 +168,26 @@ function animationLoop() {
 
     objects.forEach((obj) => {
 
+        // if (grid[obj.currentGridLocation].blocked !== true) {
+        //     grid[obj.currentGridLocation].blocked = true
+            grid[obj.currentGridLocation].occupied.add(obj.color)
+        // }
 
-        updateCharacterPosition(obj, tileWidth, tileHeight)
+        if (obj.needsToMove) {
+            obj.previousGridLocation = obj.currentGridLocation
+            if (grid[obj.previousGridLocation]) {
+                // grid[obj.previousGridLocation].blocked = false
+                grid[obj.currentGridLocation].occupied.delete(obj.color)
 
+            }
+            updateCharacterPosition(obj, tileWidth, tileHeight)
+            obj.currentGridLocation = findCellKey(obj, reciprocal)
+            // grid[obj.currentGridLocation].blocked = true
+            grid[obj.currentGridLocation].occupied.add(obj.color)
+        }
         if (obj.shape === "circle") {
             let modifiedObject = CalculateOffset(obj)
-            animateMale(modifiedObject, ctx, male)
+            animateMale(modifiedObject, ctx, maleWalk, maleRun)
             DrawCircle(modifiedObject, ctx)
         } else if (obj.shape === "rectangle") {
             let modifiedObject = CalculateOffset(obj)
@@ -167,12 +196,13 @@ function animationLoop() {
             console.log("error drawing object")
         }
 
-        const cellId = findCellKey(obj, reciprocal);
+        obj.isMoving = false
+
         ctx.beginPath();
         ctx.font = `${20}px Arial`;
-        ctx.fillStyle = "red";
+        ctx.fillStyle = obj.color;
         ctx.textAlign = "center";
-        ctx.fillText(`${cellId}`, obj.x + obj.offX, obj.y + obj.offY - 20);
+        ctx.fillText(`${obj.currentGridLocation}`, obj.x + obj.offX, obj.y + obj.offY - 20);
 
     })
 
@@ -180,8 +210,8 @@ function animationLoop() {
         drawSelectionRectangle();
     }
 
-    //copying map from topCanvas to maincanvas so it would be visible and after moving the characters inorder to overlay
-    ctx.drawImage(topCanvas, Worldoffset.offsetX, Worldoffset.offsetY,);
+    //copying map from topCanvas to maincanvas so it would be visible and after the drawing of the characters inorder to overlay
+    ctx.drawImage(topCanvas, Worldoffset.offsetX, Worldoffset.offsetY);
 
 
     ctx.beginPath();

@@ -1,7 +1,9 @@
-import { ctx, objects } from './shared.js';
+import { findCellRealXY } from './functions.js';
+import { ctx, objects, tileWidth } from './shared.js';
 
 
-export function CreateCircle(x, y, angle, color) {
+export function CreateCircle(gridx, gridy, angle, color) {
+    let { x, y } = findCellRealXY(gridx, gridy, tileWidth)
     const circle = {
         id: Date.now() + Math.floor(Math.random() * 100),
         x,
@@ -14,7 +16,7 @@ export function CreateCircle(x, y, angle, color) {
         offY: 0,
         radius: 10,
         speed: 2,
-        originalSpeed : 2,
+        originalSpeed: 2,
         color,
         angle,
         target: null,
@@ -23,7 +25,11 @@ export function CreateCircle(x, y, angle, color) {
         shape: "circle",
         path: [],
         currentPathIndex: 0,
-        needsToMove: false
+        needsToMove: false,
+        isMoving: false,
+        currentGridLocation: `${gridx},${gridy}`,
+        previousGridLocation: "",
+        repositioningCount : 0
 
     }
     objects.push(circle);
@@ -37,7 +43,7 @@ export function DrawCircle(circle, ctx) {
     ctx.beginPath();
 
     ctx.rotate(circle.angle);
-    ctx.lineWidth = 0.7;
+    ctx.lineWidth = 1;
     ctx.strokeStyle = circle.selected ? "green" : circle.color;
     ctx.arc(0, 0, circle.radius + 5, 0, Math.PI * 2);
     ctx.fillStyle = circle.selected ? "green" : circle.color;
@@ -69,7 +75,7 @@ export function DrawRectangle(rectangle, ctx) {
 }
 
 
-export function animateMale(obj, ctx, image) {
+export function animateMale(obj, ctx, maleWalk, maleRun) {
     let direction = {
         x: Math.cos(obj.angle),
         y: Math.sin(obj.angle)
@@ -100,18 +106,23 @@ export function animateMale(obj, ctx, image) {
         obj.scene = 0;
         // console.log("up")
     }
-    if (obj.path.length === 0) {
+    if (obj.isMoving == false) {
         obj.frame = 8
     }
+
+    let image = obj.running ? maleRun : maleWalk
+    let framesCount = obj.running ? 8 : 9
+
     // ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, destinationX, destinationY, destinationWidth, destinationHeight);
-    obj.frame = (obj.frame + 1) % 9; // Cycle through frames from 0 to 8
+    obj.frame = (obj.frame + 1) % framesCount; // Cycle through frames from 0 to 8
     let sourceX = obj.frame * 32; // The x coordinate is the frame index times the frame width
     let sourceY = obj.scene * 32; // The y coordinate is the scene index times the scene height
     ctx.drawImage(image, sourceX, sourceY, 32, 32, obj.x + obj.offX - 16, obj.y + obj.offY - 16, 32, 32);
 }
 
 
-export function CreateRectangle(x, y, width, height, angle, color) {
+export function CreateRectangle(gridx, gridy, width, height, angle, color) {
+    let { x, y } = findCellRealXY(gridx, gridy, tileWidth)
     const rectangle = {
         id: Date.now() + Math.floor(Math.random() * 100),
         x,
@@ -132,6 +143,10 @@ export function CreateRectangle(x, y, width, height, angle, color) {
         shape: "rectangle",
         path: [],
         currentPathIndex: 0,
+        needsToMove: false,
+        isMoving: false,
+        currentGridLocation: `${gridx},${gridy}`,
+        previousGridLocation: ""
     };
     objects.push(rectangle);
     return rectangle
