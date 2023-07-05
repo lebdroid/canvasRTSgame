@@ -1,11 +1,10 @@
 // import { CalculateOffset } from './functions.js';
 import { aStarAlgorithm } from './Astar.js';
 import { findCellKey } from './functions.js';
-import { Worldoffset, canvas, ctx, grid, isScrolling, objects, reciprocal } from './shared.js';
+import { Worldoffset, canvas, ctx, grid, isScrolling, objects, reciprocal, selected } from './shared.js';
 
 let startX, startY, width, height; // letiables to store the starting position and size of the selection rectangle
 let isSelecting = false // Flag to indicate whether the user is currently selecting
-let selected = []
 let selectionRect = null
 let isDragging = false; // Flag to indicate whether you are dragging an object
 let wasDragging = false
@@ -80,29 +79,29 @@ function handleStart(event) {
 
         // If there is an object under the mouse position
         if (objectUnderMouse) {
-            if (selected.length === 0) {
-                // If no object is currently selected, select the clicked object
+            if (selected.selected.length === 0) {
+                // If no object is currently selected.selected, select the clicked object
                 objectUnderMouse.selected = true;
-                selected.push(objectUnderMouse);
-            } else if (selected.length === 1 && selected[0] !== objectUnderMouse) {
-                // If one object is currently selected and it's not the clicked object, switch the selection
-                selected[0].selected = false;
-                selected = [objectUnderMouse];
+                selected.selected.push(objectUnderMouse);
+            } else if (selected.selected.length === 1 && selected.selected[0] !== objectUnderMouse) {
+                // If one object is currently selected.selected and it's not the clicked object, switch the selection
+                selected.selected[0].selected = false;
+                selected.selected = [objectUnderMouse];
                 objectUnderMouse.selected = true;
-            } else if (selected.length === 1 && selected[0] === objectUnderMouse) {
-                // If the clicked object is already selected, deselect it
+            } else if (selected.selected.length === 1 && selected.selected[0] === objectUnderMouse) {
+                // If the clicked object is already selected.selected, deselect it
                 objectUnderMouse.selected = false;
-                selected = [];
+                selected.selected = [];
             }
             // Set the flag to indicate that you are dragging
             isDragging = true;
-            // Loop through the selected array and calculate the offset between the mouse position and the object position
-            for (let obj of selected) {
+            // Loop through the selected.selected array and calculate the offset between the mouse position and the object position
+            for (let obj of selected.selected) {
                 dragOffset[obj.id] = { x: startX - obj.x, y: startY - obj.y };
             }
             return; // Return from the function
         }
-        if (objectUnderMouse == null && selected.length > 0) {
+        if (objectUnderMouse == null && selected.selected.length > 0) {
             if (isScrolling.status == true && event.touches[1]) {
                 let x = event.touches[1].clientX
                 let y = event.touches[1].clientY
@@ -133,26 +132,30 @@ function CheckDoubleClicks() {
     lastTime = performance.now()
 }
 
+let counter = 10
 
 function SetDestination(startX, startY) {
     setTimeout(() => {
 
         if (isSelecting) return
-
-
-        selected.forEach(obj => {
+        let targetLocation = CalculateOffset({ x: startX, y: startY })
+        let targetCellName = findCellKey(targetLocation, reciprocal)
+        let targets = findUnblockedCells(targetCellName)
+    
+        selected.selected.forEach(obj => {
             if (doubleClicked) {
                 if (obj.speed + 2 <= 4)
                     obj.speed += 2
                 obj.running = true
             }
-            let targetLocation = CalculateOffset({ x: startX, y: startY })
             let startCellName = findCellKey(obj, reciprocal)
-            let targetCellName = findCellKey(targetLocation, reciprocal)
-            let path = aStarAlgorithm(startCellName, targetCellName)
-            obj.target = targetLocation
+            let target = targets.pop()
+
+            let path = aStarAlgorithm(startCellName, target)
+            obj.target = target
             obj.path = path
             obj.currentPathIndex = 0
+            obj.congestionTimer = 0
             obj.needsToMove = true
 
         })
@@ -178,9 +181,9 @@ function handleMove(event) {
         }
     } else if (isDragging) { // If you are dragging an object
         let mouseX = x - canvasRect.left
-        let mouseY = y - canvasRect.top  
-        // Loop through the selected array and update the position of each object based on the mouse movement and the offset
-        selected.forEach(obj => {
+        let mouseY = y - canvasRect.top
+        // Loop through the selected.selected array and update the position of each object based on the mouse movement and the offset
+        selected.selected.forEach(obj => {
             obj.x = mouseX - dragOffset[obj.id].x
             obj.y = mouseY - dragOffset[obj.id].y
         });
@@ -200,10 +203,10 @@ function handleEnd(event) {
 }
 
 function clearSelection() {// Function to clear the selection
-    // Loop through the selected array and set the selected property to false
-    selected.forEach(obj => obj.selected = false);
-    // Empty the selected array
-    selected = []
+    // Loop through the selected.selected array and set the selected.selected property to false
+    selected.selected.forEach(obj => obj.selected = false);
+    // Empty the selected.selected array
+    selected.selected = []
 }
 
 
@@ -213,15 +216,15 @@ function updateSelection(objects) {// Function to update the selection
         if (object.x + object.offX >= selectionRect.left && object.x + object.offX <= selectionRect.right &&
             object.y + object.offY >= selectionRect.top && object.y + object.offY <= selectionRect.bottom
         ) {
-            if (!object.selected) { // If the object is not already selected, add it to the selected array and set its selected property to true
+            if (!object.selected) { // If the object is not already selected.selected, add it to the selected.selected array and set its selected.selected property to true
                 object.selected = true;
-                selected.push(object);
+                selected.selected.push(object);
             }
         } else {
-            if (object.selected) {// If the object is not within the selection rectangle, but it is selected, remove it from the selected array and set its selected property to false
+            if (object.selected) {// If the object is not within the selection rectangle, but it is selected.selected, remove it from the selected.selected array and set its selected.selected property to false
                 object.selected = false;
-                const index = selected.indexOf(object);
-                selected.splice(index, 1);
+                const index = selected.selected.indexOf(object);
+                selected.selected.splice(index, 1);
             }
         }
     });
@@ -271,4 +274,29 @@ function drawSelectionRectangle() { // Function to draw the selection rectangle
 }
 
 
-export { drawSelectionRectangle, selected, isSelecting, isDragging, doubleClicked };
+// A function that takes a target location and finds as many unblocked cells as there are elements in selected.selected array
+function findUnblockedCells(targetLocation) {
+    let unblockedCells = [];
+    let queue = [];
+    let visited = new Set();
+    let targetCellName = targetLocation
+    queue.push(targetCellName);
+    visited.add(targetCellName);
+    while (queue.length > 0 && unblockedCells.length < selected.selected.length) {
+        let currentCellName = queue.shift();
+        let currentCell = grid[currentCellName];
+        if (!currentCell.blocked && currentCell.occupied.size == 0) {
+            unblockedCells.push(currentCellName);
+        }
+        for (let adjacentCellName of currentCell.adj) {
+            if (!visited.has(adjacentCellName)) {
+                queue.push(adjacentCellName);
+                visited.add(adjacentCellName);
+            }
+        }
+    }
+    return unblockedCells;
+}
+
+
+export { drawSelectionRectangle, isSelecting, isDragging, doubleClicked };

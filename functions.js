@@ -103,6 +103,11 @@ export function paintGridOnCanvas(graph, context) {
         context.strokeStyle = 'black';
         context.lineWidth = 1;
         context.strokeRect(x, y, cellSize, cellSize);
+
+        context.font = `${10}px Arial`;
+        context.fillStyle = "black";
+        context.textAlign = "center";
+        context.fillText(`${cell.x},${cell.y}`, x + 16 , y + 16);
     }
 }
 
@@ -156,25 +161,25 @@ export function updateCharacterPosition(character, cellWidth, cellHeight) {
     let cellName = character.path[character.currentPathIndex];
     let currentCell = grid[cellName]
 
-    if (currentCell.occupied.size > 0) {
+    // if (currentCell.occupied.size > 0) {
 
-        let previous = grid[character.currentGridLocation]
-        let filtered = previous.adj.filter(value => currentCell.adj.includes(value) && grid[value].blocked == false);
-        if(!filtered[0]){
-            character.isMoving = false
-            return
-        }
-        cellName = filtered[0]
-        currentCell = grid[cellName]
-        character.path[character.currentPathIndex] = cellName
+    //     let previous = grid[character.currentGridLocation]
+    //     let filtered = previous.adj.filter(value => currentCell.adj.includes(value) && grid[value].blocked == false);
+    //     if (!filtered[0]) {
+    //         character.isMoving = false
+    //         return
+    //     }
+    //     cellName = filtered[0]
+    //     currentCell = grid[cellName]
+    //     character.path[character.currentPathIndex] = cellName
 
-        if (!cellName){
-            console.log(character.path.length, character.currentPathIndex)
-            console.log(character.path)
-        }
+    //     if (!cellName) {
+    //         console.log(character.path.length, character.currentPathIndex)
+    //         console.log(character.path)
+    //     }
 
 
-    }
+    // }
 
     const targetX = (currentCell.x * cellWidth) + (cellWidth / 2) // Adjust based on your grid cell size
     const targetY = (currentCell.y * cellHeight) + (cellWidth / 2); // Adjust based on your grid cell size
@@ -207,13 +212,16 @@ export function updateCharacterPosition(character, cellWidth, cellHeight) {
     }
 
     // Move towards the target cell
-    let vx = (dx / distance) * character.speed;
-    let vy = (dy / distance) * character.speed;
+    // if (currentCell.occupied.size == 0) {
+        let vx = (dx / distance) * character.speed;
+        let vy = (dy / distance) * character.speed;
 
-    character.x += vx;
-    character.y += vy;
-    character.angle = angle
-    character.isMoving = true
+        character.x += vx;
+        character.y += vy;
+        character.angle = angle
+        character.isMoving = true
+    // }
+
 
 }
 

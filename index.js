@@ -1,5 +1,5 @@
 
-import { canvas, ctx, grid, mapPiXelheight, mapPiXelwidth, objects, reciprocal, tileHeight, tileWidth, Worldoffset } from './shared.js';
+import { canvas, ctx, grid, mapPiXelheight, mapPiXelwidth, objects, reciprocal, selected, tileHeight, tileWidth, Worldoffset } from './shared.js';
 import { animateMale, CreateCircle, CreateRectangle, DrawCircle, DrawRectangle } from './shapes.js';
 import { handleMouseMovement } from './scrolling.js';
 import { CheckCollisionRectangleCircle, findCellKey, findCellRealXY, GetLength, Locate, paintGridOnCanvas, Subtract, updateCharacterPosition } from './functions.js';
@@ -53,10 +53,14 @@ const girdcontext = gridcanvas.getContext('2d');
 gridcanvas.width = mapPiXelwidth
 gridcanvas.height = mapPiXelheight
 
+
+
+let pause = true
 document.addEventListener('keydown', function (event) {
     if (event.key === 'p') {
         // Perform your desired actions here
-        console.log(grid["5,5"].blocked);
+        // console.log(grid["5,5"].blocked);
+        pause = !pause
     }
 });
 
@@ -115,20 +119,37 @@ tiles.onload = () => {
             }
         }
     }
+
+    generateCircles(100)
+
 }
 
 
-let yellow = CreateCircle(13, 10, 0 * Math.PI / 180, "yellow");
-let red = CreateCircle(15, 10, 0, "red");
-let blue = CreateCircle(17, 10, 0, "blue");
-let purple = CreateCircle(19, 10, 0, "purple");
+// let yellow = CreateCircle(13, 10, 0 * Math.PI / 180, "yellow");
+// let red = CreateCircle(14, 10, 0, "red");
+// let blue = CreateCircle(15, 10, 0, "blue");
+// let purple = CreateCircle(16, 10, 0, "purple");
 
-let green = CreateCircle(12, 10, 0 * Math.PI / 180, "green");
-let pink = CreateCircle(11, 10, 0, "pink");
-let brown = CreateCircle(10, 10, 0, "brown");
-let orange = CreateCircle(9, 10, 0, "orange");
+// let green = CreateCircle(17, 10, 0 * Math.PI / 180, "green");
+// let pink = CreateCircle(18, 10, 0, "pink");
+// let brown = CreateCircle(19, 10, 0, "brown");
+// let orange = CreateCircle(20, 10, 0, "orange");
 
-let purplerect = CreateRectangle(21, 10, 30, 10, 0, "purple")
+
+// let Black = CreateCircle(13, 11, 0 * Math.PI / 180, "Black");
+// let Chocolate = CreateCircle(14, 11, 0, "Chocolate");
+// let Cornsilk = CreateCircle(15, 11, 0, "Cornsilk");
+// let Crimson = CreateCircle(18, 11, 0, "Crimson");
+
+// let Cyan = CreateCircle(13, 12, 0 * Math.PI / 180, "Cyan");
+// let DarkBlue = CreateCircle(14, 12, 0, "DarkBlue");
+// let DarkCyan = CreateCircle(15, 12, 0, "DarkCyan");
+// let DarkGoldenRod = CreateCircle(18, 12, 0, "DarkGoldenRod");
+
+
+// let purplerect = CreateRectangle(21, 10, 30, 10, 0, "purple")
+
+
 
 
 
@@ -139,94 +160,147 @@ function CalculateOffset(obj) {
 }
 
 
+
+
 let frameCount = 0;
 let fps = 0;
 let lastTime = performance.now();
+let delta = performance.now()
+
 
 function animationLoop() {
-
+    let speedRange = document.getElementById("speedrange").value
     let currentTime = performance.now();
-    frameCount++;
-    if (currentTime > lastTime + 1000) {
-        fps = frameCount;
-        frameCount = 0;
-        lastTime = currentTime;
-    }
+    if (currentTime > delta + Number(speedRange) && pause) {
 
-    handleMouseMovement();
-
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        delta = currentTime;
+        frameCount++;
+        if (currentTime > lastTime + 1000) {
+            fps = frameCount;
+            frameCount = 0;
+            lastTime = currentTime;
+        }
 
 
-    //copying map from secondarycanvas to maincanvas so it would be visible
-    ctx.drawImage(secondaryCanvas, Worldoffset.offsetX, Worldoffset.offsetY);
-
-    ctx.drawImage(gridcanvas, Worldoffset.offsetX, Worldoffset.offsetY);
+        handleMouseMovement();
 
 
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    objects.forEach((obj) => {
 
-        // if (grid[obj.currentGridLocation].blocked !== true) {
-        //     grid[obj.currentGridLocation].blocked = true
-            grid[obj.currentGridLocation].occupied.add(obj.color)
-        // }
+        //copying map from secondarycanvas to maincanvas so it would be visible
+        ctx.drawImage(secondaryCanvas, Worldoffset.offsetX, Worldoffset.offsetY);
 
-        if (obj.needsToMove) {
-            obj.previousGridLocation = obj.currentGridLocation
-            if (grid[obj.previousGridLocation]) {
-                // grid[obj.previousGridLocation].blocked = false
-                grid[obj.currentGridLocation].occupied.delete(obj.color)
+        // ctx.drawImage(gridcanvas, Worldoffset.offsetX - 32, Worldoffset.offsetY - 32);
 
-            }
-            updateCharacterPosition(obj, tileWidth, tileHeight)
-            obj.currentGridLocation = findCellKey(obj, reciprocal)
+
+
+        objects.forEach((obj) => {
+
+            // if (grid[obj.currentGridLocation].blocked !== true) {
             // grid[obj.currentGridLocation].blocked = true
             grid[obj.currentGridLocation].occupied.add(obj.color)
-        }
-        if (obj.shape === "circle") {
-            let modifiedObject = CalculateOffset(obj)
-            animateMale(modifiedObject, ctx, maleWalk, maleRun)
-            DrawCircle(modifiedObject, ctx)
-        } else if (obj.shape === "rectangle") {
-            let modifiedObject = CalculateOffset(obj)
-            DrawRectangle(modifiedObject, ctx)
-        } else {
-            console.log("error drawing object")
+            // }
+
+            if (obj.needsToMove) {
+                obj.previousGridLocation = obj.currentGridLocation
+                if (grid[obj.previousGridLocation]) {
+                    // grid[obj.previousGridLocation].blocked = false
+                    grid[obj.currentGridLocation].occupied.delete(obj.color)
+
+                }
+
+                updateCharacterPosition(obj, tileWidth, tileHeight)
+                obj.currentGridLocation = findCellKey(obj, reciprocal)
+                // grid[obj.currentGridLocation].blocked = true
+                let cell = grid[obj.currentGridLocation]
+                cell.occupied.add(obj.color)
+                // if (cell.occupied.size > 1) {
+                //     ctx.beginPath()
+                //     ctx.fillStyle = "purple"
+                //     ctx.fillRect((cell.x * 32) + Worldoffset.offsetX, (cell.y * 32) + Worldoffset.offsetY, 32, 32)
+                // }
+            }
+            if (obj.shape === "circle") {
+                let modifiedObject = CalculateOffset(obj)
+                animateMale(modifiedObject, ctx, maleWalk, maleRun)
+                DrawCircle(modifiedObject, ctx)
+            } else if (obj.shape === "rectangle") {
+                let modifiedObject = CalculateOffset(obj)
+                DrawRectangle(modifiedObject, ctx)
+            } else {
+                console.log("error drawing object")
+            }
+
+            obj.isMoving = false
+
+
+            // ctx.beginPath();
+            // ctx.font = `${20}px Arial`;
+            // ctx.fillStyle = obj.color;
+            // ctx.textAlign = "center";
+            // ctx.fillText(`${obj.currentGridLocation}`, obj.x + obj.offX, obj.y + obj.offY - 20);
+
+        })
+
+        if (isSelecting) {
+            drawSelectionRectangle();
         }
 
-        obj.isMoving = false
+        //copying map from topCanvas to maincanvas so it would be visible and after the drawing of the characters inorder to overlay
+        ctx.drawImage(topCanvas, Worldoffset.offsetX, Worldoffset.offsetY);
+
 
         ctx.beginPath();
         ctx.font = `${20}px Arial`;
-        ctx.fillStyle = obj.color;
+        ctx.fillStyle = "#31f711";
         ctx.textAlign = "center";
-        ctx.fillText(`${obj.currentGridLocation}`, obj.x + obj.offX, obj.y + obj.offY - 20);
+        ctx.fillText(`fps : ${fps}`, 100, 35);
 
-    })
-
-    if (isSelecting) {
-        drawSelectionRectangle();
     }
 
-    //copying map from topCanvas to maincanvas so it would be visible and after the drawing of the characters inorder to overlay
-    ctx.drawImage(topCanvas, Worldoffset.offsetX, Worldoffset.offsetY);
-
-
-    ctx.beginPath();
-    ctx.font = `${20}px Arial`;
-    ctx.fillStyle = "#31f711";
-    ctx.textAlign = "center";
-    ctx.fillText(`fps : ${fps}`, 100, 35);
 
     requestAnimationFrame(animationLoop);
+
 }
 
-paintGridOnCanvas(grid, girdcontext)
+
+// setTimeout(() => {
+//     paintGridOnCanvas(grid, girdcontext)
+
+// }, 100)
+
 
 animationLoop();
 
 
 
 
+function generateCircles(number) {
+    let counter = 0
+    let queue = [];
+    let visited = new Set();
+    let targetCellName = `0,0`
+    let colors = ["yellow", "red", "blue", "purple", "green", "pink", "brown", "orange"];
+    let colorIndex = 0;
+
+    queue.push(targetCellName);
+    visited.add(targetCellName);
+    while (counter < number) {
+        let currentCellName = queue.shift();
+        let currentCell = grid[currentCellName];
+        if (!currentCell.blocked && currentCell.occupied.size == 0) {
+            let color = colors[colorIndex];
+            let circle = CreateCircle(currentCell.x, currentCell.y, 0, color);
+            colorIndex = (colorIndex + 1) % colors.length;
+            counter++
+        }
+        for (let adjacentCellName of currentCell.adj) {
+            if (!visited.has(adjacentCellName)) {
+                queue.push(adjacentCellName);
+                visited.add(adjacentCellName);
+            }
+        }
+    }
+    return;
+}

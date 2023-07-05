@@ -53,8 +53,8 @@ function calculateHeuristic(node, goalNode) {
     const dx = Math.abs(node.x - goalNode.x);
     const dy = Math.abs(node.y - goalNode.y);
 
-    const straightCost = 1;
-
+    let straightCost = 1;
+  
     // calculate the estimated cost as the sum of horizontal and vertical distances
     const heuristic = straightCost * (dx + dy);
 

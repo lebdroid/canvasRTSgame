@@ -20,6 +20,8 @@ let isScrolling = { status: false }
 
 let Worldoffset = { offsetX: 1, offsetY: 1 }
 
+let selected = { selected: [] }
+
 let tileWidth = MAP.tilewidth
 let tileHeight = MAP.tileheight
 let mapPiXelwidth = MAP.width * tileWidth
@@ -46,7 +48,7 @@ function CreateGrid(map, rows, cols) {
                     g: Infinity,
                     tile: [],
                     adj: [],
-                    occupied : new Set()
+                    occupied: new Set()
                 }
                 // 1, 0  right
                 if (x + 1 >= 0 && x + 1 < rows && y >= 0 && y < cols) {
@@ -92,4 +94,4 @@ CreateGrid(MAP, MAP.width, MAP.height)
 
 
 
-export { canvas, ctx, objects, grid, mouselocation, isMobileDevice, isScrolling, controlCanvas, Worldoffset, tileWidth, tileHeight, mapPiXelheight, mapPiXelwidth, reciprocal }
+export { canvas, ctx, objects, grid, mouselocation, isMobileDevice, isScrolling, controlCanvas, Worldoffset, tileWidth, tileHeight, mapPiXelheight, mapPiXelwidth, reciprocal, selected }

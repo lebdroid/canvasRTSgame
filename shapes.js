@@ -29,8 +29,8 @@ export function CreateCircle(gridx, gridy, angle, color) {
         isMoving: false,
         currentGridLocation: `${gridx},${gridy}`,
         previousGridLocation: "",
-        repositioningCount : 0
-
+        congestionTimer : 0,
+        neighborsCellsTried: []
     }
     objects.push(circle);
     return circle

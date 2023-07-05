@@ -44,11 +44,18 @@
             background-color: rgba(128, 128, 128, 0.5);
             z-index: 15;
         }
+        #speedrange {
+            position: fixed;
+            top: 10px;
+            left: 40%;
+            z-index: 2000;
+        }
     </style>
 </head>
 <script src="index.js" type="module"></script>
 
 <body>
+    <input id="speedrange" name="speedrange" value="0" min="0" max="100" type="range"></input>
     <canvas id="myCanvas"></canvas>
     <canvas id="controlcanvas"></canvas>
     <div id="canvases"></div>
